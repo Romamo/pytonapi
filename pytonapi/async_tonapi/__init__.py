@@ -20,6 +20,7 @@ class AsyncTonapi(AsyncTonapiClient):
             websocket_url: Optional[str] = None,
             headers: Optional[Dict[str, Any]] = None,
             timeout: Optional[float] = None,
+            rate_limit: Optional[int] = None
     ) -> None:
         """
         Initialize the AsyncTonapiClient.
@@ -40,6 +41,7 @@ class AsyncTonapi(AsyncTonapiClient):
             websocket_url=websocket_url,
             headers=headers,
             timeout=timeout,
+            rate_limit=rate_limit
         )
 
     @property

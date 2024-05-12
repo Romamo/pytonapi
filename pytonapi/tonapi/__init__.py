@@ -19,6 +19,7 @@ class Tonapi(TonapiClient):
             base_url: Optional[str] = None,
             headers: Optional[Dict[str, Any]] = None,
             timeout: Optional[float] = None,
+            rate_limit: Optional[int] = None
     ) -> None:
         """
         Initialize the TonapiClient.
@@ -36,7 +37,8 @@ class Tonapi(TonapiClient):
             max_retries=max_retries,
             base_url=base_url,
             headers=headers,
-            timeout=timeout
+            timeout=timeout,
+            rate_limit=rate_limit
         )
 
     @property

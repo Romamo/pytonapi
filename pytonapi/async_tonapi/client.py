@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import time
 from typing import Any, Dict, Optional, AsyncGenerator
 
 import httpx
@@ -32,6 +33,7 @@ class AsyncTonapiClient:
             websocket_url: Optional[str] = None,
             headers: Optional[Dict[str, Any]] = None,
             timeout: Optional[float] = None,
+            rate_limit: Optional[int] = None
     ) -> None:
         """
         Initialize the AsyncTonapiClient.
@@ -52,6 +54,9 @@ class AsyncTonapiClient:
         self.base_url = base_url or "https://tonapi.io/" if not is_testnet else "https://testnet.tonapi.io/"
         self.websocket_url = websocket_url or "wss://tonapi.io/v2/websocket"
         self.headers = headers or {"Authorization": f"Bearer {api_key}"}
+
+        self._rate_limit = rate_limit
+        self._last_request_time = None
 
     @staticmethod
     async def __read_content(response: httpx.Response) -> Any:
@@ -188,6 +193,15 @@ class AsyncTonapiClient:
         url = self.base_url + path
         self.headers.update(headers or {})
         timeout = httpx.Timeout(timeout=self.timeout)
+
+        if self._rate_limit:
+            if self._last_request_time:
+                time_since_last_request = time.perf_counter() - self._last_request_time
+                if time_since_last_request < self._rate_limit:
+                    print('Sleeping')
+                    time.sleep(self._rate_limit - time_since_last_request)
+            self._last_request_time = time.perf_counter()
+
         try:
             async with httpx.AsyncClient(headers=self.headers, timeout=timeout) as session:
                 session: httpx.AsyncClient
