@@ -29,6 +29,7 @@ class TonapiClient:
             base_url: Optional[str] = None,
             headers: Optional[Dict[str, Any]] = None,
             timeout: Optional[float] = None,
+            rate_limit: Optional[int] = None,
     ) -> None:
         """
         Initialize the TonapiClient.
@@ -47,6 +48,9 @@ class TonapiClient:
 
         self.base_url = base_url or "https://tonapi.io/" if not is_testnet else "https://testnet.tonapi.io/"
         self.headers = headers or {"Authorization": f"Bearer {api_key}"}
+
+        self._rate_limit = rate_limit
+        self._last_request_time = None
 
     @staticmethod
     def __read_content(response: httpx.Response) -> Any:
@@ -143,6 +147,15 @@ class TonapiClient:
         url = self.base_url + path
         self.headers.update(headers or {})
         timeout = httpx.Timeout(timeout=self.timeout)
+
+        if self._rate_limit:
+            if self._last_request_time:
+                time_since_last_request = time.perf_counter() - self._last_request_time
+                if time_since_last_request < self._rate_limit:
+                    print('Sleeping')
+                    time.sleep(self._rate_limit - time_since_last_request)
+            self._last_request_time = time.perf_counter()
+
         try:
             with httpx.Client(headers=self.headers, timeout=timeout) as session:
                 session: httpx.Client
